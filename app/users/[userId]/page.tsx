@@ -16,9 +16,9 @@ type Params = {
 export async function generateMetadata({
   params: { userId },
 }: Params): Promise<Metadata> {
-  const userData: Promise<User> = getUser(userId);
-  const user: User = await userData;
-  if (!user.name) {
+  const userData: Promise<User | undefined> = getUser(userId);
+  const user: User | undefined = await userData;
+  if (!user) {
     return {
       title: "User Not Found",
     };
@@ -30,11 +30,15 @@ export async function generateMetadata({
 }
 
 export default async function UserPage({ params: { userId } }: Params) {
-  const userData: Promise<User> = getUser(userId);
+  const userData: Promise<User | undefined> = getUser(userId);
   const userPostsData: Promise<Post[]> = getUserPosts(userId);
 
   //const [user, userPosts] = await Promise.all([userData, userPostsData]);
-  const user = await userData;
+  const user: User | undefined = await userData;
+
+  if (!user?.name) {
+    notFound();
+  }
 
   return (
     <>
@@ -42,7 +46,7 @@ export default async function UserPage({ params: { userId } }: Params) {
         <Link href="/users">Back to Users</Link>
       </h2>
       <br />
-      <h2>{user.name}</h2>
+      <h2>{user?.name}</h2>
       <br />
       <Suspense fallback={<h2>Loading...</h2>}>
         <UserPosts promise={userPostsData} />
